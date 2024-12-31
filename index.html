@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #fff;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .bingo-container {
+            background-color: rgba(0, 0, 50, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .number-display {
+            font-size: 3em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #fff;
+            padding: 20px;
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .numbers-drawn {
+            background: #1e3c72;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        /* Custom Scroll Bar */
+        .numbers-drawn::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .numbers-drawn::-webkit-scrollbar-track {
+            background: #203a43;
+            border-radius: 10px;
+        }
+
+        .numbers-drawn::-webkit-scrollbar-thumb {
+            background: #2a5298;
+            border-radius: 10px;
+        }
+
+        .numbers-drawn::-webkit-scrollbar-thumb:hover {
+            background: #1e3c72;
+        }
+
+        .numbers-drawn span {
+            font-size: 1.2em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #2a5298, #1e3c72);
+            color: #fff;
+            padding: 10px;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        button {
+            background: linear-gradient(135deg, #4caf50, #388e3c);
+            border: none;
+            padding: 10px 30px;
+            font-size: 1.2em;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #388e3c, #2e7d32);
+        }
+
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .check-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .check-container input {
+            padding: 10px;
+            width: calc(100% - 40px);
+            max-width: 500px;
+            /* margin-bottom: 10px; */
+            border: 2px solid #1e3c72;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .check-container button {
+            background: #1976d2;
+            border: none;
+            padding: 10px 20px;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .check-container button:hover {
+            background: #115293;
+        }
+
+        .check-result {
+            margin-bottom: 05px;
+            font-size: 16px;
+            /* text-align: left; */
+            padding: 10px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Sistema de Bingo</h1>
+    <div class="bingo-container">
+        <div class="number-display" id="current-number">🎲</div>
+        <button id="draw-button">Sortear Número</button>
+        <div class="numbers-drawn" id="numbers-drawn">
+            <!-- Números sorteados aparecerão aqui -->
+        </div>
+        <div class="check-container">
+            <input type="text" id="check-input" placeholder="Insira os números separados por vírgula">
+            <button id="check-button">Verificar Números</button>
+            <div id="check-result" class="check-result"></div>
+        </div>
+        <button id="reset-button" style="background: #d32f2f; margin-top: -05px;">Limpar Bingo!</button>
+    </div>
+
+    <script>
+        const drawnNumbers = JSON.parse(localStorage.getItem('drawnNumbers')) || [];
+        const drawButton = document.getElementById('draw-button');
+        const currentNumberDisplay = document.getElementById('current-number');
+        const numbersDrawnContainer = document.getElementById('numbers-drawn');
+        const checkInput = document.getElementById('check-input');
+        const checkButton = document.getElementById('check-button');
+        const checkResult = document.getElementById('check-result');
+        const resetButton = document.getElementById('reset-button');
+
+        function getBingoColumn(number) {
+            if (number >= 1 && number <= 15) return `B ${number}`;
+            if (number >= 16 && number <= 30) return `I ${number}`;
+            if (number >= 31 && number <= 45) return `N ${number}`;
+            if (number >= 46 && number <= 60) return `G ${number}`;
+            if (number >= 61 && number <= 75) return `O ${number}`;
+            return number;
+        }
+
+        function updateDrawnNumbers() {
+            numbersDrawnContainer.innerHTML = '';
+            drawnNumbers.sort((a, b) => a - b).forEach(number => {
+                const numberElement = document.createElement('span');
+                numberElement.textContent = getBingoColumn(number);
+                numbersDrawnContainer.appendChild(numberElement);
+            });
+        }
+
+        function drawNumber() {
+            if (drawnNumbers.length >= 75) {
+                drawButton.disabled = true;
+                currentNumberDisplay.textContent = "🏆";
+                return;
+            }
+
+            let number;
+            do {
+                number = Math.floor(Math.random() * 75) + 1;
+            } while (drawnNumbers.includes(number));
+
+            drawnNumbers.push(number);
+            localStorage.setItem('drawnNumbers', JSON.stringify(drawnNumbers));
+            animateNumberDisplay(number);
+            updateDrawnNumbers();
+        }
+
+        function animateNumberDisplay(number) {
+            currentNumberDisplay.textContent = "🎲";
+            currentNumberDisplay.style.animation = "none";
+
+            setTimeout(() => {
+                currentNumberDisplay.style.animation = "fadeIn 0.5s ease-in-out";
+                currentNumberDisplay.textContent = getBingoColumn(number);
+            }, 200);
+        }
+
+        function checkNumbers() {
+            const inputNumbers = checkInput.value
+                .split(',')
+                .map(num => parseInt(num.trim(), 10))
+                .filter(num => !isNaN(num));
+
+            if (inputNumbers.length === 0) {
+                checkResult.textContent = "Por favor, insira números válidos.";
+                return;
+            }
+
+            const unmatchedNumbers = inputNumbers.filter(num => !drawnNumbers.includes(num));
+
+            if (unmatchedNumbers.length === 0) {
+                checkResult.innerHTML = "🎉 Todos os números foram sorteados! Temos um vencedor!";
+                checkResult.style.color = "lightgreen";
+            } else {
+                checkResult.innerHTML = `❌ Alguns números ainda não foram sorteados: ${unmatchedNumbers
+                    .map(num => getBingoColumn(num))
+                    .join(', ')}`;
+                checkResult.style.color = "red";
+            }
+        }
+
+        function resetBingo() {
+            localStorage.removeItem('drawnNumbers');
+            drawnNumbers.length = 0;
+            updateDrawnNumbers();
+            drawButton.disabled = false;
+            currentNumberDisplay.textContent = "🎲";
+            checkResult.innerHTML = "";
+        }
+
+        drawButton.addEventListener('click', drawNumber);
+        checkButton.addEventListener('click', checkNumbers);
+        resetButton.addEventListener('click', resetBingo);
+
+        updateDrawnNumbers();
+        if (drawnNumbers.length >= 75) {
+            drawButton.disabled = true;
+            currentNumberDisplay.textContent = "🏆";
+        }
+    </script>
+</body>
+
+</html>
